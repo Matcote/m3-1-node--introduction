@@ -3,6 +3,7 @@
 // import the needed node_modules.
 const express = require("express");
 const morgan = require("morgan");
+let jokeMode = false;
 
 express()
   // Below are methods that are included in express(). We chain them for convenience.
@@ -47,7 +48,54 @@ express()
   .get("/parrot-message", (req, res) => {
     const message = { author: "parrot", text: req.query.message };
     const randomTime = Math.floor(Math.random() * 3000);
-    console.log(req.query);
+    setTimeout(() => {
+      res.status(200).json({ status: 200, message });
+    }, randomTime);
+  })
+
+  .get("/bot-message", (req, res) => {
+    const getBotMessage = (text) => {
+      const commonGreetings = ["hi", "hello", "howdy"];
+      const commonGoodbyes = ["bye", "goodbye", "seeya"];
+      const jokes = [
+        `I bought my friend an elephant for his room.
+      He said "Thanks"
+      I said "Don't mention it"`,
+        `I bought the world's worst thesaurus yesterday. Not only is it terrible, it's terrible.`,
+        `What's the difference between a good joke and a bad joke timing.`,
+      ];
+
+      let botMsg = text;
+      if (jokeMode === true) {
+        if (text == "YES") {
+          botMsg = `${jokes[Math.floor(Math.random() * 3)]}`;
+          jokeMode = false;
+        } else if (text == "NO") {
+          botMsg = "Goodbye...";
+          jokeMode = false;
+        } else {
+          botMsg = `Unrecognized answer. Please reply with 'YES' or 'NO'.`;
+        }
+      } else {
+        for (let i = 0; i < 3; i++) {
+          if (text.includes(commonGreetings[i])) {
+            botMsg = "Hello!";
+          } else if (text.includes(commonGoodbyes[i])) {
+            botMsg = "Goodbye...";
+          }
+        }
+        if (text.includes("something funny")) {
+          botMsg = `Do you want to hear a joke? Answer with either 'YES' or 'NO'.`;
+          jokeMode = true;
+        }
+      }
+      return botMsg;
+    };
+    const message = {
+      author: "parrot",
+      text: `Bzzt ${getBotMessage(req.query.message)}`,
+    };
+    const randomTime = Math.floor(Math.random() * 3000);
     setTimeout(() => {
       res.status(200).json({ status: 200, message });
     }, randomTime);
